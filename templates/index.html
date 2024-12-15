@@ -1,34 +1,39 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MessageBOX</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-        <div class="page">
-         <h1><a href="{{ url_for('index') }}">MessageBOX</a></h1>
-         <div class="metanav">
-             {% if not current_user.is_authenticated %}
-                 <a href="{{ url_for('login') }}">LogIn</a>
-                 <a href="{{ url_for('register') }}">Register</a>
-             {% else %}
-                 <a href="{{ url_for('logout') }}">LogOut</a>
-             {% endif %}
+{% extends "base.html" %}
+{% block content %}
+    {% if current_user.is_authenticated %}  {# ログインしている場合に表示 #}
+        <h2>Create</h2>
+        <form action="{{ url_for('index') }}" method="post">
+            <label for="message">Message:</label>
+            <br>
+            <textarea name="content" id="message" placeholder="今の気分はいかがですか？"></textarea>
+            <br>
+            <input type="submit" value="Create" />
+        </form>
+    {% endif %}
+
+        <h2>一覧</h2>
+     <ul>
+         {% for message in messages %}
+         <div class="message">
+             <li>
+                 <img src="http://www.gravatar.com/avatar/{{ message.user.email }}?d=identicon&s=80" alt=""
+                     class="avatar">
+                 {{ message.user.name }} {{ message.pub_date }}
+                                 {% if message.user == current_user %}
+                     <form action="{{ url_for('delete', message_id=message.id) }}" method="post" style="display:inline;">
+                         <input type="submit" value="削除" onclick="if(!confirm('このメッセージを削除しますか？')) return false">
+                     </form>
+                 {% endif %}
+                 <div class="message-content">
+                    <a href="{{ url_for('show', message_id=message.id) }}">
+                     {{ message.content }}
+                     </a>
+                     {% if message.messages.count() > 0 %}
+                         {{ message.messages.count() }}件の返信
+                     {% endif %}
+                 </div>
+             </li>
          </div>
-      {% for message in get_flashed_messages() %}
-         <p>{{ message }}</p>
-     {% endfor %}
-
-
-         {% if current_user.is_authenticated %}
-         <p>{{ current_user.name }} さんこんにちは</p>
-     {% else %}
-         <p>ログインしていません</p>
-     {% endif %}
-
-     <h1>Hello world!</h1>
-   </div>
-</body>
-</html>
+         {% endfor %}
+     </ul>
+{% endblock %}
